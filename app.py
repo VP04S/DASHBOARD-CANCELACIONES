@@ -35,21 +35,48 @@ if len(archivos) > 0:
 
     for file in archivos:
 
-        df_temp = pd.read_excel(file)
+        try:
 
-        columnas = [
-            "SKU",
-            "TEINDA",
-            "TIPO",
-            "PCE",
-            "SOLICITANTE",
-            "MOTIVO",
-            "FECHA SOLICITADA"
-        ]
+            df_temp = pd.read_excel(file)
 
-        df_temp = df_temp[columnas]
+            # Limpiar nombres de columnas
+            df_temp.columns = (
+                df_temp.columns.astype(str)
+                .str.strip()
+                .str.replace("\n", " ", regex=False)
+            )
 
-        dataframes.append(df_temp)
+            columnas = [
+                "SKU",
+                "TEINDA",
+                "TIPO",
+                "PCE",
+                "SOLICITANTE",
+                "MOTIVO",
+                "FECHA SOLICITADA"
+            ]
+
+            faltantes = [
+                col for col in columnas
+                if col not in df_temp.columns
+            ]
+
+            if faltantes:
+                st.warning(
+                    f"Archivo ignorado: {file.name} - Faltan columnas: {faltantes}"
+                )
+                continue
+
+            df_temp = df_temp[columnas]
+
+            dataframes.append(df_temp)
+
+        except Exception as e:
+            st.warning(f"Error leyendo {file.name}: {e}")
+
+    if len(dataframes) == 0:
+        st.error("No se encontraron archivos válidos.")
+        st.stop()
 
     df = pd.concat(dataframes, ignore_index=True)
 
@@ -58,9 +85,9 @@ if len(archivos) > 0:
         errors="coerce"
     )
 
-    # ==========================
-    # SIDEBAR FILTROS
-    # ==========================
+    # ===================================
+    # FILTROS
+    # ===================================
 
     st.sidebar.header("Filtros")
 
@@ -71,7 +98,10 @@ if len(archivos) > 0:
 
         rango_fecha = st.sidebar.date_input(
             "FECHA SOLICITADA",
-            value=(fecha_min.date(), fecha_max.date())
+            value=(
+                fecha_min.date(),
+                fecha_max.date()
+            )
         )
 
         if len(rango_fecha) == 2:
@@ -108,9 +138,9 @@ if len(archivos) > 0:
     if tienda:
         df = df[df["TEINDA"].isin(tienda)]
 
-    # ==========================
-    # KPI'S
-    # ==========================
+    # ===================================
+    # KPI
+    # ===================================
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -134,9 +164,9 @@ if len(archivos) > 0:
         df["MOTIVO"].nunique()
     )
 
-    # ==========================
+    # ===================================
     # GRAFICOS
-    # ==========================
+    # ===================================
 
     col1, col2 = st.columns(2)
 
@@ -146,7 +176,7 @@ if len(archivos) > 0:
         .reset_index(name="TOTAL")
     )
 
-    graf1 = px.bar(
+    fig1 = px.bar(
         motivo_df,
         x="MOTIVO",
         y="TOTAL",
@@ -154,7 +184,7 @@ if len(archivos) > 0:
     )
 
     col1.plotly_chart(
-        graf1,
+        fig1,
         use_container_width=True
     )
 
@@ -164,7 +194,7 @@ if len(archivos) > 0:
         .reset_index(name="TOTAL")
     )
 
-    graf2 = px.bar(
+    fig2 = px.bar(
         tipo_df,
         x="TIPO",
         y="TOTAL",
@@ -172,7 +202,7 @@ if len(archivos) > 0:
     )
 
     col2.plotly_chart(
-        graf2,
+        fig2,
         use_container_width=True
     )
 
@@ -182,7 +212,7 @@ if len(archivos) > 0:
         .reset_index(name="TOTAL")
     )
 
-    graf3 = px.line(
+    fig3 = px.line(
         fechas,
         x="FECHA SOLICITADA",
         y="TOTAL",
@@ -190,7 +220,7 @@ if len(archivos) > 0:
     )
 
     st.plotly_chart(
-        graf3,
+        fig3,
         use_container_width=True
     )
 
@@ -205,25 +235,9 @@ if len(archivos) > 0:
         .head(10)
     )
 
-    graf4 = px.bar(
+    fig4 = px.bar(
         topsku,
         x="SKU",
         y="TOTAL",
         title="Top 10 SKU"
     )
-
-    st.plotly_chart(
-        graf4,
-        use_container_width=True
-    )
-
-    st.subheader("Detalle")
-
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
-
-else:
-
-    st.info("Sube un archivo Excel para comenzar.")
