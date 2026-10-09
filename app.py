@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+from io import BytesIO
 
 st.set_page_config(
     page_title="Dashboard Cancelaciones",
@@ -241,3 +242,39 @@ if len(archivos) > 0:
         y="TOTAL",
         title="Top 10 SKU"
     )
+    st.plotly_chart(
+        fig4,
+        use_container_width=True
+    )
+
+    st.subheader("📋 Detalle de Solicitudes")
+
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
+
+    # BOTON DESCARGAR EXCEL
+
+    from io import BytesIO
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(
+            writer,
+            index=False,
+            sheet_name="Detalle"
+        )
+
+    buffer.seek(0)
+
+    st.download_button(
+        label="📥 Descargar Excel Filtrado",
+        data=buffer,
+        file_name="Solicitudes_Filtradas.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+else:
+    st.info("Sube un archivo Excel para comenzar.")
