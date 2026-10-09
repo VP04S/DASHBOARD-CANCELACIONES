@@ -1,0 +1,182 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from pathlib import Path
+
+st.set_page_config(
+    page_title="Dashboard Cancelaciones",
+    layout="wide"
+)
+
+UPLOAD_PATH = Path("uploads")
+UPLOAD_PATH.mkdir(exist_ok=True)
+
+st.title("📦 Dashboard de Cancelaciones")
+
+archivo = st.file_uploader(
+    "Subir Excel",
+    type=["xlsx"]
+)
+
+if archivo is not None:
+
+    ruta = UPLOAD_PATH / archivo.name
+
+    with open(ruta, "wb") as f:
+        f.write(archivo.getbuffer())
+
+    st.success("Archivo cargado correctamente")
+
+archivos = list(UPLOAD_PATH.glob("*.xlsx"))
+
+if len(archivos) > 0:
+
+    dataframes = []
+
+    for file in archivos:
+        df = pd.read_excel(file)
+
+        columnas = [
+            "SKU",
+            "TEINDA",
+            "TIPO",
+            "PCE",
+            "SOLICITANTE",
+            "MOTIVO",
+            "FECHA SOLICITADA"
+        ]
+
+        df = df[columnas]
+
+        dataframes.append(df)
+
+    df = pd.concat(dataframes, ignore_index=True)
+
+    df["FECHA SOLICITADA"] = pd.to_datetime(
+        df["FECHA SOLICITADA"],
+        errors="coerce"
+    )
+
+    st.sidebar.header("Filtros")
+
+    tipo = st.sidebar.multiselect(
+        "TIPO",
+        df["TIPO"].dropna().unique()
+    )
+
+    motivo = st.sidebar.multiselect(
+        "MOTIVO",
+        df["MOTIVO"].dropna().unique()
+    )
+
+    tienda = st.sidebar.multiselect(
+        "TIENDA",
+        df["TEINDA"].dropna().unique()
+    )
+
+    if tipo:
+        df = df[df["TIPO"].isin(tipo)]
+
+    if motivo:
+        df = df[df["MOTIVO"].isin(motivo)]
+
+    if tienda:
+        df = df[df["TEINDA"].isin(tienda)]
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric(
+        "Total Solicitudes",
+        len(df)
+    )
+
+    c2.metric(
+        "SKU Únicos",
+        df["SKU"].nunique()
+    )
+
+    c3.metric(
+        "Tiendas",
+        df["TEINDA"].nunique()
+    )
+
+    c4.metric(
+        "Motivos",
+        df["MOTIVO"].nunique()
+    )
+
+    col1, col2 = st.columns(2)
+
+    graf1 = px.bar(
+        df.groupby("MOTIVO")
+        .size()
+        .reset_index(name="TOTAL"),
+        x="MOTIVO",
+        y="TOTAL",
+        title="Solicitudes por Motivo"
+    )
+
+    col1.plotly_chart(
+        graf1,
+        use_container_width=True
+    )
+
+    graf2 = px.bar(
+        df.groupby("TIPO")
+        .size()
+        .reset_index(name="TOTAL"),
+        x="TIPO",
+        y="TOTAL",
+        title="Solicitudes por Tipo"
+    )
+
+    col2.plotly_chart(
+        graf2,
+        use_container_width=True
+    )
+
+    fechas = (
+        df.groupby("FECHA SOLICITADA")
+        .size()
+        .reset_index(name="TOTAL")
+    )
+
+    graf3 = px.line(
+        fechas,
+        x="FECHA SOLICITADA",
+        y="TOTAL",
+        title="Evolución de Solicitudes"
+    )
+
+    st.plotly_chart(
+        graf3,
+        use_container_width=True
+    )
+
+    topsku = (
+        df.groupby("SKU")
+        .size()
+        .reset_index(name="TOTAL")
+        .sort_values(
+            "TOTAL",
+            ascending=False
+        )
+        .head(10)
+    )
+
+    graf4 = px.bar(
+        topsku,
+        x="SKU",
+        y="TOTAL",
+        title="Top 10 SKU"
+    )
+
+    st.plotly_chart(
+        graf4,
+        use_container_width=True
+    )
+
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
