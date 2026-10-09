@@ -34,7 +34,8 @@ if len(archivos) > 0:
     dataframes = []
 
     for file in archivos:
-        df = pd.read_excel(file)
+
+        df_temp = pd.read_excel(file)
 
         columnas = [
             "SKU",
@@ -46,9 +47,9 @@ if len(archivos) > 0:
             "FECHA SOLICITADA"
         ]
 
-        df = df[columnas]
+        df_temp = df_temp[columnas]
 
-        dataframes.append(df)
+        dataframes.append(df_temp)
 
     df = pd.concat(dataframes, ignore_index=True)
 
@@ -57,50 +58,59 @@ if len(archivos) > 0:
         errors="coerce"
     )
 
+    # ==========================
+    # SIDEBAR FILTROS
+    # ==========================
+
     st.sidebar.header("Filtros")
 
-# FILTRO FECHA
+    fecha_min = df["FECHA SOLICITADA"].min()
+    fecha_max = df["FECHA SOLICITADA"].max()
 
-fecha_min = df["FECHA SOLICITADA"].min()
-fecha_max = df["FECHA SOLICITADA"].max()
+    if pd.notna(fecha_min) and pd.notna(fecha_max):
 
-rango_fecha = st.sidebar.date_input(
-    "FECHA SOLICITADA",
-    value=(fecha_min.date(), fecha_max.date())
-)
+        rango_fecha = st.sidebar.date_input(
+            "FECHA SOLICITADA",
+            value=(fecha_min.date(), fecha_max.date())
+        )
 
-if len(rango_fecha) == 2:
-    fecha_inicio, fecha_fin = rango_fecha
+        if len(rango_fecha) == 2:
 
-    df = df[
-        (df["FECHA SOLICITADA"].dt.date >= fecha_inicio)
-        &
-        (df["FECHA SOLICITADA"].dt.date <= fecha_fin)
-    ]
+            fecha_inicio, fecha_fin = rango_fecha
 
-tipo = st.sidebar.multiselect(
-    "TIPO",
-    sorted(df["TIPO"].dropna().unique())
-)
+            df = df[
+                (df["FECHA SOLICITADA"].dt.date >= fecha_inicio)
+                &
+                (df["FECHA SOLICITADA"].dt.date <= fecha_fin)
+            ]
 
-motivo = st.sidebar.multiselect(
-    "MOTIVO",
-    sorted(df["MOTIVO"].dropna().unique())
-)
+    tipo = st.sidebar.multiselect(
+        "TIPO",
+        sorted(df["TIPO"].dropna().unique())
+    )
 
-tienda = st.sidebar.multiselect(
-    "TIENDA",
-    sorted(df["TEINDA"].dropna().unique())
-)
+    motivo = st.sidebar.multiselect(
+        "MOTIVO",
+        sorted(df["MOTIVO"].dropna().unique())
+    )
 
-if tipo:
-    df = df[df["TIPO"].isin(tipo)]
+    tienda = st.sidebar.multiselect(
+        "TIENDA",
+        sorted(df["TEINDA"].dropna().unique())
+    )
 
-if motivo:
-    df = df[df["MOTIVO"].isin(motivo)]
+    if tipo:
+        df = df[df["TIPO"].isin(tipo)]
 
-if tienda:
-    df = df[df["TEINDA"].isin(tienda)]
+    if motivo:
+        df = df[df["MOTIVO"].isin(motivo)]
+
+    if tienda:
+        df = df[df["TEINDA"].isin(tienda)]
+
+    # ==========================
+    # KPI'S
+    # ==========================
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -124,12 +134,20 @@ if tienda:
         df["MOTIVO"].nunique()
     )
 
+    # ==========================
+    # GRAFICOS
+    # ==========================
+
     col1, col2 = st.columns(2)
 
-    graf1 = px.bar(
+    motivo_df = (
         df.groupby("MOTIVO")
         .size()
-        .reset_index(name="TOTAL"),
+        .reset_index(name="TOTAL")
+    )
+
+    graf1 = px.bar(
+        motivo_df,
         x="MOTIVO",
         y="TOTAL",
         title="Solicitudes por Motivo"
@@ -140,10 +158,14 @@ if tienda:
         use_container_width=True
     )
 
-    graf2 = px.bar(
+    tipo_df = (
         df.groupby("TIPO")
         .size()
-        .reset_index(name="TOTAL"),
+        .reset_index(name="TOTAL")
+    )
+
+    graf2 = px.bar(
+        tipo_df,
         x="TIPO",
         y="TOTAL",
         title="Solicitudes por Tipo"
@@ -187,15 +209,4 @@ if tienda:
         topsku,
         x="SKU",
         y="TOTAL",
-        title="Top 10 SKU"
-    )
-
-    st.plotly_chart(
-        graf4,
-        use_container_width=True
-    )
-
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
+        title
