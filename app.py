@@ -59,29 +59,48 @@ if len(archivos) > 0:
 
     st.sidebar.header("Filtros")
 
-    tipo = st.sidebar.multiselect(
-        "TIPO",
-        df["TIPO"].dropna().unique()
-    )
+# FILTRO FECHA
 
-    motivo = st.sidebar.multiselect(
-        "MOTIVO",
-        df["MOTIVO"].dropna().unique()
-    )
+fecha_min = df["FECHA SOLICITADA"].min()
+fecha_max = df["FECHA SOLICITADA"].max()
 
-    tienda = st.sidebar.multiselect(
-        "TIENDA",
-        df["TEINDA"].dropna().unique()
-    )
+rango_fecha = st.sidebar.date_input(
+    "FECHA SOLICITADA",
+    value=(fecha_min.date(), fecha_max.date())
+)
 
-    if tipo:
-        df = df[df["TIPO"].isin(tipo)]
+if len(rango_fecha) == 2:
+    fecha_inicio, fecha_fin = rango_fecha
 
-    if motivo:
-        df = df[df["MOTIVO"].isin(motivo)]
+    df = df[
+        (df["FECHA SOLICITADA"].dt.date >= fecha_inicio)
+        &
+        (df["FECHA SOLICITADA"].dt.date <= fecha_fin)
+    ]
 
-    if tienda:
-        df = df[df["TEINDA"].isin(tienda)]
+tipo = st.sidebar.multiselect(
+    "TIPO",
+    sorted(df["TIPO"].dropna().unique())
+)
+
+motivo = st.sidebar.multiselect(
+    "MOTIVO",
+    sorted(df["MOTIVO"].dropna().unique())
+)
+
+tienda = st.sidebar.multiselect(
+    "TIENDA",
+    sorted(df["TEINDA"].dropna().unique())
+)
+
+if tipo:
+    df = df[df["TIPO"].isin(tipo)]
+
+if motivo:
+    df = df[df["MOTIVO"].isin(motivo)]
+
+if tienda:
+    df = df[df["TEINDA"].isin(tienda)]
 
     c1, c2, c3, c4 = st.columns(4)
 
