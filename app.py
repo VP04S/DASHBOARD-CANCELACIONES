@@ -209,4 +209,21 @@ if len(archivos) > 0:
         topsku,
         x="SKU",
         y="TOTAL",
-        title
+        title="Top 10 SKU"
+    )
+
+    st.plotly_chart(
+        graf4,
+        use_container_width=True
+    )
+
+    st.subheader("Detalle")
+
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
+
+else:
+
+    st.info("Sube un archivo Excel para comenzar.")
