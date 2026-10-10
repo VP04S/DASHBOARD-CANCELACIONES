@@ -283,25 +283,14 @@ if len(archivos) > 0:
     )
 
     col3, col4 = st.columns(2)
-
-    tienda_sku = (
-        df.groupby("TIENDA")["SKU"]
-        .nunique()
-        .reset_index(name="TOTAL_SKU")
+    motivo_tienda = (
+        df.groupby("TIENDA")["MOTIVO"]
+        .count()
+        .reset_index(name="TOTAL_MOTIVOS")
         .sort_values(
-        "TOTAL_SKU",
-        ascending=False
-        )   
-    )
-
-    fig3 = px.line(
-    tienda_sku,
-    x="TIENDA",
-    y="TOTAL_SKU",
-    markers=True,
-    title="Cantidad de SKU por Tienda"
-    )
-    
+            "TOTAL_MOTIVOS",
+            ascending
+            
     col3.plotly_chart(
         fig3,
         use_container_width=True
