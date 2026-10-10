@@ -310,13 +310,13 @@ if len(archivos) > 0:
     motivo_fecha= (
         df.groupby("FECHA")["MOTIVO"]
         .count()
-        .reset_index(name="TOTAL MOTIVOS")
+        .reset_index(name="TOTAL_MOTIVOS")
     )
 
     fig4 = px.bar(
         motivo_fecha,
         y="FECHA",
-        x="TOTAL MOTIVOS",
+        x="TOTAL_MOTIVOS",
         color="TOTAL_MOTIVOS",
         title="Cantidad de Motivos por Fecha",
         template="plotly_white"
