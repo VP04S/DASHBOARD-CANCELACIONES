@@ -239,7 +239,7 @@ if len(archivos) > 0:
     # GRAFICOS
     # =========================
 
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
     motivos_pie = (
         df.groupby("MOTIVO")
@@ -288,10 +288,7 @@ if len(archivos) > 0:
         df.groupby("TIENDA")["SKU"]
         .nunique()
         .reset_index(name="TOTAL_SKU")
-        .sort_values(
-            "TOTAL_SKU",
-            ascending=False
-        )
+        .sort_values("TOTAL_SKU", ascending=False)
     )
 
     fig3 = px.line(
@@ -299,11 +296,8 @@ if len(archivos) > 0:
         x="TIENDA",
         y="TOTAL_SKU",
         markers=True,
-        title="Cantidad de SKU por Tienda"
-    )
-
-    fig3.update_traces(
-        line=dict(width=4)
+        title="Cantidad de SKU por Tienda",
+        template="plotly_white"
     )
 
     col3.plotly_chart(
@@ -323,7 +317,8 @@ if len(archivos) > 0:
         x="TOTAL_SKU",
         orientation="h",
         color="TOTAL_SKU",
-        title="Cantidad de SKU por Fecha"
+        title="Cantidad de SKU por Fecha",
+        template="plotly_white"
     )
 
     col4.plotly_chart(
@@ -342,13 +337,12 @@ if len(archivos) > 0:
         x="FECHA",
         y="TOTAL",
         markers=True,
-        title="Evolución Temporal"
+        title="Evolución Temporal",
+        template="plotly_white"
     )
 
     st.plotly_chart(
-        fig5,
-        use_container_width=True
-    )
+        fig5
 
     # =========================
     # DETALLE
