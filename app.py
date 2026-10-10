@@ -219,8 +219,8 @@ if len(archivos) > 0:
     )
 
     c6.metric(
-        "💰 Total PCE",
-        f"{pd.to_numeric(df['PCE'], errors='coerce').sum():,.0f}"
+        "💰 PCE Distintos",
+        f"{df['PCE'].nunique():,}"
     )
 
     c7.metric(
@@ -285,21 +285,23 @@ if len(archivos) > 0:
     col3, col4 = st.columns(2)
 
     tienda_sku = (
-        df.groupby("TIENDA")["SKU"]
-        .nunique()
-        .reset_index(name="TOTAL_SKU")
-        .sort_values("TOTAL_SKU", ascending=False)
-    )
+    df.groupby("TIENDA")["SKU"]
+    .nunique()
+    .reset_index(name="TOTAL_SKU")
+    .sort_values(
+        "TOTAL_SKU",
+        ascending=False
+       )
+     )
 
     fig3 = px.line(
-        tienda_sku,
-        x="TIENDA",
-        y="TOTAL_SKU",
-        markers=True,
-        title="Cantidad de SKU por Tienda",
-        template="plotly_white"
+    tienda_sku,
+    x="TIENDA",
+    y="TOTAL_SKU",
+    markers=True,
+    title="Cantidad de SKU por Tienda"
     )
-
+    
     col3.plotly_chart(
         fig3,
         use_container_width=True
