@@ -241,22 +241,26 @@ if len(archivos) > 0:
 
     col1,col2 = st.columns(2)
 
-    fig1 = px.bar(
-        df.groupby("MOTIVO")
-        .size()
-        .reset_index(name="TOTAL")
-        .sort_values("TOTAL",ascending=False)
-        .head(10),
-        x="MOTIVO",
-        y="TOTAL",
-        color="TOTAL",
-        title="Top Motivos"
-    )
+    motivos_pie = (
+    df.groupby("MOTIVO")
+    .size()
+    .reset_index(name="TOTAL")
+    .sort_values("TOTAL", ascending=False)
+    .head(10)
+)
 
-    col1.plotly_chart(
-        fig1,
-        use_container_width=True
-    )
+fig1 = px.pie(
+    motivos_pie,
+    names="MOTIVO",
+    values="TOTAL",
+    title="Distribución por Motivo",
+    hole=0.4
+)
+
+fig1.update_traces(
+    textposition="inside",
+    textinfo="percent+label"
+)
 
     fig2 = px.bar(
         df.groupby("AREA")
@@ -275,34 +279,43 @@ if len(archivos) > 0:
 
     col3,col4 = st.columns(2)
 
-    fig3 = px.bar(
-        df.groupby("TIENDA")
-        .size()
-        .reset_index(name="TOTAL")
-        .sort_values("TOTAL",ascending=False)
-        .head(15),
-        x="TIENDA",
-        y="TOTAL",
-        color="TOTAL",
-        title="Top Tiendas"
+tienda_sku = (
+    df.groupby("TIENDA")["SKU"]
+    .nunique()
+    .reset_index(name="TOTAL_SKU")
+    .sort_values(
+        "TOTAL_SKU",
+        ascending=False
     )
+)
 
-    col3.plotly_chart(
-        fig3,
-        use_container_width=True
-    )
+fig3 = px.line(
+    tienda_sku,
+    x="TIENDA",
+    y="TOTAL_SKU",
+    markers=True,
+    title="Cantidad de SKU por Tienda"
+)
 
-    fig4 = px.bar(
-        df.groupby("SKU")
-        .size()
-        .reset_index(name="TOTAL")
-        .sort_values("TOTAL",ascending=False)
-        .head(15),
-        x="SKU",
-        y="TOTAL",
-        color="TOTAL",
-        title="Top SKU"
-    )
+fig3.update_traces(
+    line=dict(width=4)
+)
+
+sku_fecha = (
+    df.groupby("FECHA")["SKU"]
+    .count()
+    .reset_index(name="TOTAL_SKU")
+    .sort_values("TOTAL_SKU")
+)
+
+fig4 = px.bar(
+    sku_fecha,
+    y="FECHA",
+    x="TOTAL_SKU",
+    orientation="h",
+    color="TOTAL_SKU",
+    title="Cantidad de SKU por Fecha"
+)
 
     col4.plotly_chart(
         fig4,
