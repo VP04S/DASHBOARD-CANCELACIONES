@@ -289,7 +289,7 @@ if len(archivos) > 0:
         .reset_index(name="TOTAL_MOTIVOS")
         .sort_values(
             "TOTAL_MOTIVOS",
-            ascending
+            ascending=True
         )
     )
     
@@ -308,19 +308,15 @@ if len(archivos) > 0:
     )
 
     sku_fecha = (
-        df.groupby("FECHA")["SKU"]
+        df.groupby("FECHA")["MOTIVO"]
         .count()
-        .reset_index(name="TOTAL_SKU")
+        .reset_index(name="TOTAL MOTIVOS")
     )
 
     fig4 = px.bar(
-        sku_fecha,
+        motivo_fecha,
         y="FECHA",
-        x="TOTAL_SKU",
-        orientation="h",
-        color="TOTAL_SKU",
-        title="Cantidad de SKU por Fecha",
-        template="plotly_white"
+        x="TOTAL MOTIVOS",
     )
 
     col4.plotly_chart(
