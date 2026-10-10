@@ -307,7 +307,7 @@ if len(archivos) > 0:
         use_container_width=True
     )
 
-    sku_fecha = (
+    motivo_fecha= (
         df.groupby("FECHA")["MOTIVO"]
         .count()
         .reset_index(name="TOTAL MOTIVOS")
@@ -317,6 +317,9 @@ if len(archivos) > 0:
         motivo_fecha,
         y="FECHA",
         x="TOTAL MOTIVOS",
+        color="TOTAL_MOTIVOS",
+        title="Cantidad de Motivos por Fecha",
+        template="plotly_white"
     )
 
     col4.plotly_chart(
