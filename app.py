@@ -147,10 +147,10 @@ if len(archivos) > 0:
         sorted(df["AREA"].dropna().unique())
     )
 
-    sku = st.sidebar.multiselect(
-        "SKU",
-        sorted(df["SKU"].dropna().unique())
-    )
+sku = st.sidebar.multiselect(
+    "SKU",
+    sorted(df["SKU"].astype(str).dropna().unique())
+)
 
     tienda = st.sidebar.multiselect(
         "TIENDA",
