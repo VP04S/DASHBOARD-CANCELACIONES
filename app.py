@@ -285,14 +285,14 @@ if len(archivos) > 0:
     col3, col4 = st.columns(2)
 
     tienda_sku = (
-    df.groupby("TIENDA")["SKU"]
-    .nunique()
-    .reset_index(name="TOTAL_SKU")
-    .sort_values(
+        df.groupby("TIENDA")["SKU"]
+        .nunique()
+        .reset_index(name="TOTAL_SKU")
+        .sort_values(
         "TOTAL_SKU",
         ascending=False
-       )
-     )
+        )   
+    )
 
     fig3 = px.line(
     tienda_sku,
