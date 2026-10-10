@@ -290,6 +290,17 @@ if len(archivos) > 0:
         .sort_values(
             "TOTAL_MOTIVOS",
             ascending
+        )
+    )
+    
+    fig3 = px.line(
+        motivo_tienda,
+        x="TIENDA",
+        y="TOTAL_MOTIVOS",
+        markers=True,
+        title="Cantidad de Motivos por Tienda",
+        template="plotly_white"
+    )
             
     col3.plotly_chart(
         fig3,
