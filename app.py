@@ -342,7 +342,9 @@ if len(archivos) > 0:
     )
 
     st.plotly_chart(
-        fig5
+        fig5,
+        use_container_width=True
+    )    
 
     # =========================
     # DETALLE
