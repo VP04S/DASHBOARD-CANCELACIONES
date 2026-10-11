@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 from io import BytesIO
+import sqlite3
 
 # =========================
 # CONFIG
@@ -16,6 +17,7 @@ st.set_page_config(
 
 UPLOAD_PATH = Path("uploads")
 UPLOAD_PATH.mkdir(exist_ok=True)
+DB_FILE = "dashboard.db"
 
 # =========================
 # TITLE
@@ -37,71 +39,61 @@ archivo = st.file_uploader(
 
 if archivo is not None:
 
-    ruta = UPLOAD_PATH / archivo.name
+    df_excel = pd.read_excel(archivo)
 
-    with open(ruta, "wb") as f:
-        f.write(archivo.getbuffer())
+    df_excel.columns = (
+        df_excel.columns.astype(str)
+        .str.strip()
+        .str.upper()
+    )
 
-    st.success("✅ Archivo cargado correctamente")
+    conn = sqlite3.connect(DB_FILE)
 
+    df_excel.to_sql(
+        "cancelaciones",
+        conn,
+        if_exists="append",
+        index=False
+    )
+
+    conn.close()
+
+    st.success("✅ Archivo agregado al histórico")
+
+if st.button("🗑 Limpiar Histórico"):
+
+    conn = sqlite3.connect(DB_FILE)
+
+    conn.execute(
+        "DROP TABLE IF EXISTS cancelaciones"
+    )
+
+    conn.commit()
+    conn.close()
+
+    st.success("Histórico eliminado")
+    st.rerun()    
+    
 # =========================
 # LECTURA
 # =========================
 
-archivos = list(UPLOAD_PATH.glob("*.xlsx"))
+conn = sqlite3.connect(DB_FILE)
 
-if len(archivos) > 0:
+try:
 
-    dataframes = []
-
-    columnas = [
-        "MOTIVO",
-        "AREA",
-        "SKU",
-        "DESCRIPCION",
-        "TIENDA",
-        "TIPO",
-        "PCE",
-        "FECHA",
-        "REFERENCIA"
-    ]
-
-    for file in archivos:
-
-        try:
-
-            df_temp = pd.read_excel(file)
-
-            df_temp.columns = (
-                df_temp.columns.astype(str)
-                .str.strip()
-                .str.upper()
-            )
-
-            faltantes = [
-                col
-                for col in columnas
-                if col not in df_temp.columns
-            ]
-
-            if faltantes:
-                continue
-
-            df_temp = df_temp[columnas]
-
-            dataframes.append(df_temp)
-
-        except:
-            pass
-
-    if len(dataframes) == 0:
-        st.warning("No existen archivos válidos")
-        st.stop()
-
-    df = pd.concat(
-        dataframes,
-        ignore_index=True
+    df = pd.read_sql(
+        "SELECT * FROM cancelaciones",
+        conn
     )
+
+except:
+
+    df = pd.DataFrame()
+
+conn.close()
+
+if not df.empty:
 
     df["FECHA"] = pd.to_datetime(
         df["FECHA"],
